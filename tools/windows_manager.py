@@ -58,9 +58,10 @@ def startup_url_args(open_urls: Sequence[str]) -> list[str]:
 
 
 def browser_launch_args(profile: dict, source_exe: Path) -> list[str]:
+    browser_exe = Path(str(profile.get("browser_exe_path") or source_exe))
     profile_path = str(Path(str(profile["profile_path"])))
     args = [
-        str(source_exe),
+        str(browser_exe),
         f"--user-data-dir={profile_path}",
         "--no-first-run",
         "--no-default-browser-check",
@@ -454,6 +455,7 @@ class Manager(tk.Tk):
             "fingerprint": fingerprint,
             "app_path": launcher["app_path"],
             "app_dir": launcher["app_dir"],
+            "browser_exe_path": launcher["browser_exe_path"],
             "launcher_path": launcher["launcher_path"],
             "icon_path": launcher["icon_path"],
             "profile_path": launcher["profile_path"],
@@ -548,6 +550,7 @@ class Manager(tk.Tk):
                     "fingerprint": fingerprint,
                     "app_path": launcher["app_path"],
                     "app_dir": launcher["app_dir"],
+                    "browser_exe_path": launcher["browser_exe_path"],
                     "launcher_path": launcher["launcher_path"],
                     "icon_path": launcher["icon_path"],
                     "profile_path": launcher["profile_path"],
@@ -661,6 +664,7 @@ class Manager(tk.Tk):
             "fingerprint": fingerprint,
             "app_path": launcher["app_path"],
             "app_dir": launcher["app_dir"],
+            "browser_exe_path": launcher["browser_exe_path"],
             "launcher_path": launcher["launcher_path"],
             "icon_path": launcher["icon_path"],
             "profile_path": launcher["profile_path"],

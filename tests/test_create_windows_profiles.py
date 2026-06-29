@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
-from tools.create_windows_profiles import shortcut_script, wrapper_cmd
+from tools.create_windows_profiles import patch_exe_icon, shortcut_script, wrapper_cmd
 from tools.windows_manager import browser_launch_args
 
 
@@ -45,6 +45,24 @@ class WrapperCmdTest(unittest.TestCase):
         self.assertEqual(args[0], r"C:\Program Files\Google\Chrome\Application\chrome.exe")
         self.assertIn("--lang=zh-CN", args)
         self.assertIn("https://example.com", args)
+
+    def test_browser_launch_args_prefers_profile_exe(self) -> None:
+        profile = {
+            "browser_exe_path": r"C:\Profiles\profile-1\店铺.exe",
+            "profile_path": r"C:\Users\tester\AppData\Local\Profiles\profile-1",
+            "args": [],
+            "open_urls": [],
+        }
+
+        args = browser_launch_args(
+            profile,
+            Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
+        )
+
+        self.assertEqual(args[0], r"C:\Profiles\profile-1\店铺.exe")
+
+    def test_patch_exe_icon_is_noop_outside_windows(self) -> None:
+        patch_exe_icon(Path("/tmp/browser.exe"), Path("/tmp/profile.ico"))
 
 
 if __name__ == "__main__":

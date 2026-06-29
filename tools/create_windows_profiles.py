@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / "apps_windows"
 DEFAULT_PROFILE_DIR = ROOT / "profiles_windows"
 DEFAULT_CONFIG_PATH = ROOT / "profiles" / "profiles.windows.json"
+DEFAULT_RCEDIT_PATH = ROOT / "tools" / "rcedit.exe"
 
 WINDOWS_BROWSER_CANDIDATES = [
     Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
@@ -236,6 +237,26 @@ def create_windows_shortcut(target_path: Path, shortcut_path: Path, icon_path: P
     )
 
 
+def rcedit_path() -> Path:
+    bundled_path = DEFAULT_RCEDIT_PATH
+    if bundled_path.exists():
+        return bundled_path
+    return Path("rcedit.exe")
+
+
+def patch_exe_icon(exe_path: Path, icon_path: Path) -> None:
+    if os.name != "nt":
+        return
+    command = [str(rcedit_path()), str(exe_path), "--set-icon", str(icon_path)]
+    subprocess.run(command, check=True, capture_output=True, text=True)
+
+
+def create_profile_browser_exe(source_exe: Path, target_exe: Path, icon_path: Path) -> None:
+    target_exe.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source_exe, target_exe)
+    patch_exe_icon(target_exe, icon_path)
+
+
 def sanitized_name(name: str) -> str:
     clean = str(name or "资料").replace("/", " ").replace("\\", " ").replace(":", " ").strip()
     return clean[:50] or "资料"
@@ -288,6 +309,7 @@ def create_profile_launcher(
     vbs_path = app_dir / f"{profile_name}.vbs"
     shortcut_path = app_dir / f"{profile_name}.lnk"
     icon_path = app_dir / f"{profile_name}.ico"
+    browser_exe_path = app_dir / f"{profile_name}.exe"
     profile_dir = profile_root / f"profile-{number}"
 
     if app_dir.exists() and force:
@@ -311,11 +333,13 @@ def create_profile_launcher(
     vbs_path.write_text(wrapper_vbs(cmd_path.resolve()), encoding="utf-8", newline="\r\n")
     make_numbered_icon(display_number, icon_path)
     if os.name == "nt":
+        create_profile_browser_exe(source_exe.resolve(), browser_exe_path.resolve(), icon_path.resolve())
         create_windows_shortcut(vbs_path.resolve(), shortcut_path.resolve(), icon_path.resolve(), app_dir.resolve())
 
     return {
         "app_dir": str(app_dir.resolve()),
         "app_path": str(vbs_path.resolve()),
+        "browser_exe_path": str(browser_exe_path.resolve()),
         "shortcut_path": str(shortcut_path.resolve()),
         "launcher_path": str(cmd_path.resolve()),
         "icon_path": str(icon_path.resolve()),
@@ -401,6 +425,7 @@ def main() -> None:
             "fingerprint": fingerprint,
             "app_path": launcher["app_path"],
             "app_dir": launcher["app_dir"],
+            "browser_exe_path": launcher["browser_exe_path"],
             "launcher_path": launcher["launcher_path"],
             "icon_path": launcher["icon_path"],
             "profile_path": launcher["profile_path"],

@@ -28,6 +28,19 @@ jobs:
           python -m pip install -r requirements-windows.txt
           python -m pip list
 
+      - name: Download rcedit
+        shell: pwsh
+        run: |
+          $release = Invoke-RestMethod "https://api.github.com/repos/electron/rcedit/releases/latest"
+          $asset = $release.assets | Where-Object { $_.name -eq "rcedit-x64.exe" } | Select-Object -First 1
+          if ($null -eq $asset) {
+            throw "rcedit-x64.exe was not found in the latest rcedit release"
+          }
+          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile "tools/rcedit.exe"
+          if (!(Test-Path "tools/rcedit.exe")) {
+            throw "tools/rcedit.exe was not downloaded"
+          }
+
       - name: Build Windows app
         shell: pwsh
         run: |
