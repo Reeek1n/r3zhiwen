@@ -12,8 +12,6 @@ import shutil
 import textwrap
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
-
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / "apps_windows"
@@ -36,6 +34,8 @@ def remove_path(path: Path) -> None:
 
 
 def font_for(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    from PIL import ImageFont
+
     candidates = [
         r"C:\Windows\Fonts\segoeuib.ttf",
         r"C:\Windows\Fonts\arialbd.ttf",
@@ -48,6 +48,8 @@ def font_for(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
 
 
 def make_numbered_icon(number: int, target_ico: Path) -> None:
+    from PIL import Image, ImageDraw
+
     image = Image.new("RGBA", (256, 256), (255, 255, 255, 0))
     draw = ImageDraw.Draw(image)
     draw.rounded_rectangle((18, 18, 238, 238), radius=56, fill=(33, 115, 245, 255))
@@ -189,7 +191,7 @@ def wrapper_cmd(profile_dir: Path, chromium_exe: Path, extra_args: list[str], op
         f"set \"EXECUTABLE={chromium_exe}\"",
         f"set \"PROFILE_DIR={profile_dir}\"",
         'if not exist "%PROFILE_DIR%" mkdir "%PROFILE_DIR%"',
-        "start \"\" %EXECUTABLE% ^",
+        "start \"\" \"%EXECUTABLE%\" ^",
         '  --user-data-dir="%PROFILE_DIR%" ^',
         "  --no-first-run ^",
         "  --no-default-browser-check ^",

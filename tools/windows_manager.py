@@ -12,6 +12,7 @@ import tkinter as tk
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Sequence
 from tkinter import filedialog, messagebox, ttk
 
 from create_windows_profiles import (
@@ -29,6 +30,7 @@ from create_windows_profiles import (
 
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS_LOG_PATH = ROOT / "logs" / "windows_manager.log"
+CREATE_NO_WINDOW = 0x08000000
 
 
 def configure_logging() -> None:
@@ -49,6 +51,23 @@ def show_fatal_error(message: str) -> None:
         root.destroy()
     except Exception:
         pass
+
+
+def startup_url_args(open_urls: Sequence[str]) -> list[str]:
+    return [url for url in (normalize_open_url(item) for item in open_urls) if url]
+
+
+def browser_launch_args(profile: dict, source_exe: Path) -> list[str]:
+    profile_path = str(Path(str(profile["profile_path"])))
+    args = [
+        str(source_exe),
+        f"--user-data-dir={profile_path}",
+        "--no-first-run",
+        "--no-default-browser-check",
+    ]
+    args.extend(str(item) for item in profile.get("args") or [])
+    args.extend(startup_url_args(profile.get("open_urls") or []))
+    return args
 
 
 @dataclass
@@ -702,13 +721,18 @@ class Manager(tk.Tk):
         self.browser_status.config(text="已导入窗口配置")
 
     def _open_profile(self, profile: dict) -> None:
-        path = profile.get("app_path")
-        if not path:
+        source_exe = Path(self.source_exe.get()).expanduser()
+        if not source_exe.exists():
+            messagebox.showerror("指纹浏览器", f"找不到 Chrome：\n{source_exe}")
             return
         if os.name == "nt":
-            os.startfile(path)
+            subprocess.Popen(
+                browser_launch_args(profile, source_exe),
+                creationflags=CREATE_NO_WINDOW,
+                close_fds=True,
+            )
         else:
-            subprocess.Popen(["open", path])
+            subprocess.Popen(browser_launch_args(profile, source_exe))
 
     def open_selected(self) -> None:
         profile = self.selected_profile()
