@@ -38,6 +38,8 @@ def main() -> None:
         str(BUILD_DIR),
         "--specpath",
         str(ROOT),
+        "--paths",
+        str(ROOT / "tools"),
         "--add-data",
         f"{ROOT / 'templates'}{';' if sys.platform == 'win32' else ':'}templates",
         "--add-data",
