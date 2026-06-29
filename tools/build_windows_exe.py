@@ -49,8 +49,6 @@ def main() -> None:
         command.append("--windowed")
     command.append(str(ROOT / "tools" / "windows_manager.py"))
     subprocess.run(command, check=True)
-    print(DIST_DIR / args.name)
-    print(SPEC_PATH)
 
 
 if __name__ == "__main__":
