@@ -1,0 +1,16 @@
+.DS_Store
+.build/
+__pycache__/
+*.py[cod]
+*.spec
+logs/
+dist_windows/
+build_windows/
+installer_dist/
+apps/
+apps_windows/
+apps_full_backup_*/
+profiles/*.json
+profiles/profile-*/
+profiles_windows/
+指纹浏览器.app/

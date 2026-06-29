@@ -1,0 +1,17 @@
+{
+  "name": "默认 Windows 模板",
+  "language": "zh-CN",
+  "timezone": "Asia/Shanghai",
+  "proxy": "",
+  "fingerprint_config": {
+    "platform": "windows",
+    "chrome_version": "148",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.215 Safari/537.36",
+    "width": 1280,
+    "height": 720,
+    "device_scale_factor": "1",
+    "cpu_cores": 8,
+    "memory_gb": 8,
+    "webrtc_policy": "disable-non-proxied-udp"
+  }
+}
