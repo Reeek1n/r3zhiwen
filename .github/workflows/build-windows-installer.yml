@@ -35,7 +35,11 @@ jobs:
           Get-ChildItem tools -Force
           python -m py_compile tools/build_windows_exe.py tools/create_windows_profiles.py tools/windows_manager.py
           python -u tools/build_windows_exe.py
-          Get-ChildItem dist_windows -Recurse -Force
+          $exePath = "dist_windows/指纹浏览器-Windows/指纹浏览器-Windows.exe"
+          if (!(Test-Path $exePath)) {
+            throw "Windows app exe was not generated: $exePath"
+          }
+          Get-ChildItem "dist_windows/指纹浏览器-Windows" -Force
 
       - name: Install Inno Setup
         run: choco install innosetup --no-progress --yes
