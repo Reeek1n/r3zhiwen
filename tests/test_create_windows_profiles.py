@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 
-from tools.create_windows_profiles import wrapper_cmd
+from tools.create_windows_profiles import shortcut_script, wrapper_cmd
 from tools.windows_manager import browser_launch_args
 
 
@@ -18,6 +18,17 @@ class WrapperCmdTest(unittest.TestCase):
         )
 
         self.assertIn('start "" "%EXECUTABLE%" ^', content)
+
+    def test_shortcut_script_binds_icon_path(self) -> None:
+        script = shortcut_script(
+            Path(r"C:\Profiles\profile-1\店铺.vbs"),
+            Path(r"C:\Profiles\profile-1\店铺.lnk"),
+            Path(r"C:\Profiles\profile-1\店铺.ico"),
+            Path(r"C:\Profiles\profile-1"),
+        )
+
+        self.assertIn("$shortcut.IconLocation", script)
+        self.assertIn(r"C:\\Profiles\\profile-1\\店铺.ico", script)
 
     def test_browser_launch_args_keep_executable_as_single_argument(self) -> None:
         profile = {

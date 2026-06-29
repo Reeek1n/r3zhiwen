@@ -212,6 +212,29 @@ def wrapper_vbs(cmd_path: Path) -> str:
     )
 
 
+def shortcut_script(target_path: Path, shortcut_path: Path, icon_path: Path, working_dir: Path) -> str:
+    return textwrap.dedent(
+        f"""\
+        $shell = New-Object -ComObject WScript.Shell
+        $shortcut = $shell.CreateShortcut({json.dumps(str(shortcut_path), ensure_ascii=False)})
+        $shortcut.TargetPath = {json.dumps(str(target_path), ensure_ascii=False)}
+        $shortcut.WorkingDirectory = {json.dumps(str(working_dir), ensure_ascii=False)}
+        $shortcut.IconLocation = {json.dumps(str(icon_path), ensure_ascii=False)}
+        $shortcut.Save()
+        """
+    )
+
+
+def create_windows_shortcut(target_path: Path, shortcut_path: Path, icon_path: Path, working_dir: Path) -> None:
+    script = shortcut_script(target_path, shortcut_path, icon_path, working_dir)
+    subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
 def sanitized_name(name: str) -> str:
     clean = str(name or "资料").replace("/", " ").replace("\\", " ").replace(":", " ").strip()
     return clean[:50] or "资料"
@@ -262,6 +285,7 @@ def create_profile_launcher(
     app_dir = output_dir / f"profile-{number}" / profile_name
     cmd_path = app_dir / f"{profile_name}.cmd"
     vbs_path = app_dir / f"{profile_name}.vbs"
+    shortcut_path = app_dir / f"{profile_name}.lnk"
     icon_path = app_dir / f"{profile_name}.ico"
     profile_dir = profile_root / f"profile-{number}"
 
@@ -285,10 +309,13 @@ def create_profile_launcher(
     )
     vbs_path.write_text(wrapper_vbs(cmd_path.resolve()), encoding="utf-8", newline="\r\n")
     make_numbered_icon(display_number, icon_path)
+    if os.name == "nt":
+        create_windows_shortcut(vbs_path.resolve(), shortcut_path.resolve(), icon_path.resolve(), app_dir.resolve())
 
     return {
         "app_dir": str(app_dir.resolve()),
         "app_path": str(vbs_path.resolve()),
+        "shortcut_path": str(shortcut_path.resolve()),
         "launcher_path": str(cmd_path.resolve()),
         "icon_path": str(icon_path.resolve()),
         "profile_path": str(profile_dir.resolve()),
